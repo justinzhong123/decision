@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<title>OCDS — UML 圖集</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+TC:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0F0F0F; --card: #1A1A1A; --card2: #242424;
+    --accent: #F5A623; --text: #E5E5E5; --text2: #999; --border: #333;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans TC', sans-serif; padding: 32px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 1.4rem; margin-bottom: 4px; }
+  .subtitle { color: var(--text2); font-size: .82rem; margin-bottom: 32px; }
+  .nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+  .nav a {
+    padding: 6px 14px; border-radius: 20px; font-size: .78rem; font-weight: 600;
+    background: var(--card2); color: var(--text2); text-decoration: none; border: 1px solid var(--border);
+    transition: .15s;
+  }
+  .nav a:hover, .nav a.active { background: var(--accent); color: #111; border-color: var(--accent); }
+  /* sections hidden via JS after Mermaid renders — initially all visible */
+  .section { display: block; }
+  .section.hidden { display: none; }
+  .uml-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin-bottom: 24px;
+  }
+  .uml-title {
+    font-family: 'IBM Plex Mono', monospace; color: var(--accent);
+    font-size: .85rem; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .uml-desc { color: var(--text2); font-size: .78rem; margin-bottom: 20px; line-height: 1.6; }
+  .mermaid { display: flex; justify-content: center; }
+  .mermaid svg { max-width: 100%; }
+</style>
+</head>
+<body>
+<h1>📊 OCDS — UML 圖集</h1>
+<div class="subtitle">機會成本決策系統 ｜ 國立高雄科技大學 智慧商務系 第五組</div>
+
+<nav class="nav">
+  <a href="#" onclick="show('usecase',this)">使用案例圖</a>
+  <a href="#" onclick="show('class-initial',this)">初步類別圖</a>
+  <a href="#" onclick="show('class-interface',this)">介面類別圖</a>
+  <a href="#" onclick="show('class',this)">詳細類別圖</a>
+  <a href="#" onclick="show('seq-create',this)">循序圖：建立決策</a>
+  <a href="#" onclick="show('seq-analyze',this)">循序圖：機會成本分析</a>
+  <a href="#" onclick="show('activity',this)">活動圖</a>
+  <a href="#" onclick="show('state',this)">狀態圖</a>
+  <a href="#" onclick="show('er',this)">ER 圖</a>
+</nav>
+
+<!-- ── 1. Use Case ── -->
+<div class="section" id="sec-usecase">
+  <div class="uml-card">
+    <div class="uml-title">Use Case Diagram — 使用案例圖</div>
+    <div class="uml-desc">描述系統與三類利害關係人（目標使用者、開發組員、指導老師）的互動邊界，涵蓋 12 個核心使用案例。</div>
+    <div class="mermaid">
+flowchart LR
+  subgraph 系統邊界["&lt;&lt;System&gt;&gt; OCDS 機會成本決策系統"]
+    direction TB
+    UC01["UC01\n決策主題初始化"]
+    UC02["UC02\n選項基本資料作業"]
+    UC03["UC03\n量化參數設定\n(C/B/R 滑桿)"]
+    UC04["UC04\n標籤管理作業"]
+    UC05["UC05\n歷史基準檢索\n&lt;&lt;include&gt;&gt;"]
+    UC06["UC06\n機會成本分析"]
+    UC07["UC07\n職涯權重加權\n&lt;&lt;extend&gt;&gt;"]
+    UC08["UC08\n優先順序排序"]
+    UC09["UC09\n推薦選擇輸出"]
+    UC10["UC10\n決策紀錄儲存"]
+    UC11["UC11\n重要選項提醒"]
+    UC12["UC12\n資料備份與清理"]
+  end
+
+  TU(["👤 目標使用者"])
+  DEV(["👤 開發組員"])
+  GT(["👤 指導老師"])
+
+  TU --- UC01
+  TU --- UC02
+  TU --- UC03
+  TU --- UC04
+  TU --- UC06
+  TU --- UC10
+  TU --- UC11
+  GT --- UC12
+
+  UC04 -->|"&lt;&lt;include&gt;&gt;"| UC05
+  UC06 -->|"&lt;&lt;include&gt;&gt;"| UC08
+  UC06 -->|"&lt;&lt;include&gt;&gt;"| UC09
+  UC08 -->|"&lt;&lt;extend&gt;&gt;"| UC07
+
+  style 系統邊界 fill:#1a1a1a,stroke:#F5A623,stroke-width:2px,color:#e5e5e5
+  style TU fill:#2a1e08,stroke:#F5A623,color:#F5A623
+  style DEV fill:#1a2e14,stroke:#4CAF50,color:#4CAF50
+  style GT fill:#1a1a2e,stroke:#7B8FE2,color:#7B8FE2
+    </div>
+  </div>
+</div>
+
+<!-- ── 2. Initial Class Diagram ── -->
+<div class="section" id="sec-class-initial">
+  <div class="uml-card">
+    <div class="uml-title">Initial Class Diagram — 初步類別圖</div>
+    <div class="uml-desc">領域分析階段的第一張類別圖，聚焦於核心業務實體（Entity）與其屬性，不含方法細節。呈現物件間的關聯性與基數，作為後續詳細設計的基礎。</div>
+    <div class="mermaid">
+classDiagram
+  class Decision {
+    id : String
+    title : String
+    description : String
+    createdAt : DateTime
+    status : String
+  }
+
+  class Option {
+    id : String
+    name : String
+    description : String
+    benefit : Float
+    cost : Float
+    risk : Float
+    netValue : Float
+    isImportant : Boolean
+  }
+
+  class Tag {
+    id : Integer
+    tag : String
+  }
+
+  class UserPreferences {
+    careerGoal : String
+    weightBenefit : Float
+    weightCost : Float
+    weightRisk : Float
+  }
+
+  class CareerTag {
+    CAREER_TAGS : Set
+    CAREER_WEIGHT : Float
+  }
+
+  Decision "1" o-- "1..*" Option : 包含
+  Option "1" o-- "0..*" Tag : 附有
+  Option "0..*" ..> UserPreferences : 參考偏好
+  Tag "0..*" ..> CareerTag : 對照職涯標籤
+    </div>
+  </div>
+</div>
+
+<!-- ── 3. Interface Class Diagram ── -->
+<div class="section" id="sec-class-interface">
+  <div class="uml-card">
+    <div class="uml-title">Interface Class Diagram — 介面類別圖</div>
+    <div class="uml-desc">定義系統四大模組的介面契約（Interface）與具體實作類別（Concrete Class）。透過介面隔離原則確保模組間低耦合，並明確標示 &lt;&lt;interface&gt;&gt;、&lt;&lt;abstract&gt;&gt; 與實作關係。</div>
+    <div class="mermaid">
+classDiagram
+  class IDecisionRepository {
+    &lt;&lt;interface&gt;&gt;
+    +createDecision(title, desc) Decision
+    +getDecision(id) Decision
+    +listDecisions() List
+    +updateStatus(id, status) void
+    +deleteDecision(id) void
+  }
+
+  class IOptionRepository {
+    &lt;&lt;interface&gt;&gt;
+    +createOption(decisionId, data) Option
+    +updateOption(id, data) Option
+    +deleteOption(id) void
+    +getOptionsByDecision(decisionId) List
+  }
+
+  class IAnalysisEngine {
+    &lt;&lt;interface&gt;&gt;
+    +computeNetValues(options) List
+    +applyCareerWeight(option, tags) Float
+    +rankOptions(options) List
+    +getRecommendation(options) String
+  }
+
+  class IHistoryService {
+    &lt;&lt;interface&gt;&gt;
+    +getBaseline(tag) Dict
+    +recordHistory(option) void
+    +cleanOldRecords(days) void
+  }
+
+  class IOutputFormatter {
+    &lt;&lt;interface&gt;&gt;
+    +formatAnalysisPanel(data) String
+    +formatRecommendation(option) String
+    +formatBaselineTable(baselines) String
+  }
+
+  class INotificationService {
+    &lt;&lt;interface&gt;&gt;
+    +scheduleReminder(option) void
+    +checkReminders() List
+    +cancelReminder(optionId) void
+  }
+
+  class IBackupService {
+    &lt;&lt;interface&gt;&gt;
+    +backup() void
+    +restore(path) void
+  }
+
+  class SQLiteDecisionRepo {
+    &lt;&lt;concrete&gt;&gt;
+    -dbPath : String
+    -conn : Connection
+  }
+
+  class SQLiteOptionRepo {
+    &lt;&lt;concrete&gt;&gt;
+    -dbPath : String
+    -conn : Connection
+  }
+
+  class OCDSAnalysisEngine {
+    &lt;&lt;concrete&gt;&gt;
+    -CAREER_WEIGHT : Float
+    -CAREER_TAGS : Set
+  }
+
+  class SQLiteHistoryService {
+    &lt;&lt;concrete&gt;&gt;
+    -windowSize : Integer
+  }
+
+  class HTMLOutputFormatter {
+    &lt;&lt;concrete&gt;&gt;
+    -templateEngine : String
+  }
+
+  class LoginNotificationService {
+    &lt;&lt;concrete&gt;&gt;
+    -reminderStore : Dict
+  }
+
+  class SQLiteBackupService {
+    &lt;&lt;concrete&gt;&gt;
+    -backupDir : String
+  }
+
+  IDecisionRepository <|.. SQLiteDecisionRepo : realizes
+  IOptionRepository <|.. SQLiteOptionRepo : realizes
+  IAnalysisEngine <|.. OCDSAnalysisEngine : realizes
+  IHistoryService <|.. SQLiteHistoryService : realizes
+  IOutputFormatter <|.. HTMLOutputFormatter : realizes
+  INotificationService <|.. LoginNotificationService : realizes
+  IBackupService <|.. SQLiteBackupService : realizes
+
+  OCDSAnalysisEngine ..> IHistoryService : uses
+  HTMLOutputFormatter ..> IAnalysisEngine : uses
+  SQLiteDecisionRepo ..> IOptionRepository : delegates
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. Detailed Class Diagram ── -->
+<div class="section" id="sec-class">
+  <div class="uml-card">
+    <div class="uml-title">Class Diagram — 類別圖</div>
+    <div class="uml-desc">展示四大模組的類別結構、屬性、方法，以及模組間的關聯（組合、依賴、使用）。</div>
+    <div class="mermaid">
+classDiagram
+  class Decision {
+    +String id
+    +String title
+    +String description
+    +String createdAt
+    +String status
+    +initialize()
+    +complete()
+    +delete()
+  }
+
+  class Option {
+    +String id
+    +String decisionId
+    +String name
+    +String description
+    +Float benefit
+    +Float cost
+    +Float risk
+    +Float netValue
+    +Float weightedScore
+    +Int isChosen
+    +Int isImportant
+    +rawScore()
+    +save()
+    +delete()
+  }
+
+  class Tag {
+    +Int id
+    +String optionId
+    +String tag
+  }
+
+  class UserPreferences {
+    +String careerGoal
+    +Float weightBenefit
+    +Float weightCost
+    +Float weightRisk
+    +get()
+    +set()
+  }
+
+  class DecisionLogicModule {
+    -Float CAREER_WEIGHT
+    -Set CAREER_TAGS
+    +rawScore()
+    +careerWeightedScore()
+    +computeNetValues()
+    +historicalBaseline()
+  }
+
+  class DataStorageModule {
+    -String dbPath
+    +getDb()
+    +initDb()
+    +backup()
+    +cleanOldRecords()
+  }
+
+  class InputModule {
+    +validateTitle()
+    +parseSlider()
+    +parseTags()
+  }
+
+  class OutputModule {
+    +generateRecommendation()
+    +formatAnalysisPanel()
+    +triggerReminder()
+    +exportBackup()
+  }
+
+  Decision "1" *-- "0..*" Option : contains
+  Option "1" *-- "0..*" Tag : has
+  DecisionLogicModule ..> Option : analyzes
+  DecisionLogicModule ..> UserPreferences : reads
+  DataStorageModule ..> Decision : persists
+  DataStorageModule ..> Option : persists
+  InputModule ..> Decision : creates
+  InputModule ..> Option : creates
+  OutputModule ..> DecisionLogicModule : uses
+  OutputModule ..> DataStorageModule : queries
+    </div>
+  </div>
+</div>
+
+<!-- ── 3. Sequence: Create Decision ── -->
+<div class="section" id="sec-seq-create">
+  <div class="uml-card">
+    <div class="uml-title">Sequence Diagram — 建立決策與選項（Events 01–04）</div>
+    <div class="uml-desc">使用者從點擊「新增決策」到完成 C/B/R 參數設定與標籤管理的完整互動流程。</div>
+    <div class="mermaid">
+sequenceDiagram
+  actor U as 使用者
+  participant UI as 前端 UI
+  participant API as Flask API
+  participant DL as 決策邏輯模組
+  participant DB as SQLite
+
+  U->>UI: 點擊「新增決策」
+  UI->>UI: 開啟 Modal（填入標題/描述）
+  U->>UI: 輸入標題、描述，點「建立決策」
+  UI->>API: POST /api/decisions
+  API->>DB: INSERT INTO decisions (UUID, title, ...)
+  DB-->>API: OK
+  API-->>UI: 201 { id, title, status:"active" }
+  UI->>UI: 渲染決策卡片（進行中 +1）
+
+  U->>UI: 點擊「新增選項」
+  UI->>UI: 開啟 Option Modal
+  U->>UI: 輸入名稱、描述
+  U->>UI: 拖動 C/B/R 滑桿（1–10）
+  UI->>UI: updateSlider() 即時顯示數值
+
+  U->>UI: 輸入標籤（Enter 加入）
+  U->>UI: 點「儲存選項」
+  UI->>API: POST /api/decisions/{id}/options
+  API->>DB: INSERT INTO options (...)
+  API->>DB: INSERT INTO tags (...)
+  DB-->>API: OK
+  API-->>UI: 201 { option object }
+  UI->>UI: 渲染選項卡片（含 C/B/R 數值）
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. Sequence: Analyze ── -->
+<div class="section" id="sec-seq-analyze">
+  <div class="uml-card">
+    <div class="uml-title">Sequence Diagram — 機會成本分析（Events 05–09）</div>
+    <div class="uml-desc">點擊「顯示機會成本分析」後，系統執行歷史基準查詢、Net Value 計算、職涯加權修正、排序與推薦輸出的完整流程。</div>
+    <div class="mermaid">
+sequenceDiagram
+  actor U as 使用者
+  participant UI as 前端 UI
+  participant API as Flask API
+  participant DL as 決策邏輯模組
+  participant DB as SQLite
+
+  U->>UI: 點擊「顯示機會成本分析」
+  UI->>UI: 顯示「計算中…」
+  UI->>API: GET /api/decisions/{id}/analyze
+
+  API->>DB: SELECT options WHERE decision_id=?
+  DB-->>API: [option_A, option_B, ...]
+
+  loop 每個選項的 tag
+    API->>DB: Event 05：SELECT 同標籤歷史移動平均\n(status='completed', LIMIT 20)
+    DB-->>API: avg_benefit, avg_cost, avg_risk
+  end
+
+  API->>DL: Event 06：computeNetValues(options)
+  note over DL: rawScore = B - C - R
+  DL->>DL: Event 07：檢查 tags ∩ CAREER_TAGS\n若符合 → score × 1.25
+  DL->>DL: Event 08：依 weighted_score 排序
+  DL->>DL: 計算 net_value = best - competitor
+  DL-->>API: options（含 recommended 旗標）
+
+  API->>DB: UPDATE options SET net_value=?
+  API-->>UI: { options[], recommendation, baselines{} }
+
+  UI->>UI: Event 09：展開分析面板
+  UI->>UI: 渲染 Net Value 計算過程（公式透明化）
+  UI->>UI: 渲染歷史基準比對表
+  UI->>UI: 顯示「★ 推薦選擇：XXX」
+  UI->>UI: 選項卡片更新（推薦卡片加綠框）
+    </div>
+  </div>
+</div>
+
+<!-- ── 5. Activity ── -->
+<div class="section" id="sec-activity">
+  <div class="uml-card">
+    <div class="uml-title">Activity Diagram — 決策完整流程</div>
+    <div class="uml-desc">從建立決策到完成儲存的完整業務活動流程，包含條件分支與守衛條件。</div>
+    <div class="mermaid">
+flowchart TD
+  S([開始]) --> A[建立決策主題\nEvent 01]
+  A --> B[新增選項\nEvent 02]
+  B --> C[設定 C / B / R 數值\nEvent 03]
+  C --> D[管理標籤\nEvent 04]
+  D --> E{是否有\n同標籤歷史？}
+  E -->|是| F[歷史基準自動檢索\nEvent 05 SQL 移動平均]
+  E -->|否| G[跳過基準比對]
+  F --> H[顯示基準比對結果]
+  G --> H
+
+  H --> I{是否達\n≥ 2 個選項？}
+  I -->|否| B
+  I -->|是| J[執行 Net Value 計算\nEvent 06]
+
+  J --> K{選項 tags ∩\nCAREER_TAGS ≠ ∅？}
+  K -->|是| L[套用 ω_cr = 1.25\nEvent 07]
+  K -->|否| M[使用原始分數]
+  L --> N[依淨值排序\nEvent 08]
+  M --> N
+
+  N --> O[輸出推薦選擇\nEvent 09]
+  O --> P{使用者\n採納建議？}
+  P -->|是| Q[儲存決策紀錄\nEvent 10\nstatus → completed]
+  P -->|否| R{繼續調整？}
+  R -->|是| C
+  R -->|否| Q
+
+  Q --> S2{標記為\n重要項目？}
+  S2 -->|是| T[設定提醒\nEvent 11]
+  S2 -->|否| U
+  T --> U[定期備份/清理\nEvent 12]
+  U --> E2([結束])
+
+  style S fill:#1a2e14,stroke:#4CAF50,color:#4CAF50
+  style E2 fill:#1a2e14,stroke:#4CAF50,color:#4CAF50
+  style J fill:#2a1e08,stroke:#F5A623,color:#F5A623
+  style L fill:#2a1e08,stroke:#F5A623,color:#F5A623
+  style O fill:#1a2e14,stroke:#4CAF50,color:#4CAF50
+    </div>
+  </div>
+</div>
+
+<!-- ── 6. State ── -->
+<div class="section" id="sec-state">
+  <div class="uml-card">
+    <div class="uml-title">State Diagram — 決策狀態機</div>
+    <div class="uml-desc">描述一筆 Decision 記錄在系統生命週期中的狀態轉換。</div>
+    <div class="mermaid">
+stateDiagram-v2
+  [*] --> 草稿 : 使用者點擊「新增決策」\n建立 UUID
+
+  草稿 --> 進行中 : 至少填入一個選項
+  進行中 --> 進行中 : 新增 / 編輯 / 刪除選項\n調整 C·B·R 標籤
+
+  state 進行中 {
+    [*] --> 未分析
+    未分析 --> 分析中 : 點擊「顯示機會成本分析」
+    分析中 --> 已分析 : API 回傳推薦結果
+    已分析 --> 未分析 : 修改任一選項參數
+  }
+
+  進行中 --> 已完成 : 點擊「完成決策」\n或採納建議\nstatus = completed
+
+  已完成 --> [*] : 超過一年\n自動清除\nEvent 12
+    </div>
+  </div>
+
+  <div class="uml-card">
+    <div class="uml-title">State Diagram — 選項狀態機</div>
+    <div class="uml-desc">描述單一 Option 的狀態，包含重要標記與推薦旗標。</div>
+    <div class="mermaid">
+stateDiagram-v2
+  [*] --> 已建立 : POST /api/decisions/{id}/options
+
+  已建立 --> 已修改 : PUT /api/options/{id}
+  已修改 --> 已修改 : 再次編輯
+
+  已建立 --> 已分析 : 觸發 /analyze
+  已修改 --> 已分析 : 觸發 /analyze
+
+  state 已分析 {
+    [*] --> 一般選項
+    一般選項 --> 推薦選項 : weighted_score 最高
+    推薦選項 --> 一般選項 : 其他選項更新\n排名改變
+  }
+
+  已建立 --> 已標記重要 : is_important = 1
+  已修改 --> 已標記重要 : is_important = 1
+  已分析 --> 已標記重要 : is_important = 1
+
+  已標記重要 --> [*] : 使用者取消標記
+  已分析 --> [*] : 所屬 Decision 完成
+    </div>
+  </div>
+</div>
+
+<!-- ── 7. ER ── -->
+<div class="section" id="sec-er">
+  <div class="uml-card">
+    <div class="uml-title">ER Diagram — 實體關係圖</div>
+    <div class="uml-desc">展示 SQLite 四張資料表的實體、屬性、主鍵/外鍵，以及基數關係。</div>
+    <div class="mermaid">
+erDiagram
+  DECISIONS {
+    TEXT id PK "UUID"
+    TEXT title "NOT NULL"
+    TEXT description
+    TIMESTAMP created_at
+    TEXT status "active | completed"
+  }
+
+  OPTIONS {
+    TEXT id PK "UUID"
+    TEXT decision_id FK
+    TEXT name "NOT NULL"
+    TEXT description
+    REAL benefit "1–10"
+    REAL cost "1–10"
+    REAL risk "1–10"
+    REAL net_value "計算後填入"
+    REAL weighted_score
+    INTEGER is_chosen "0|1"
+    INTEGER is_important "0|1"
+    TIMESTAMP created_at
+  }
+
+  TAGS {
+    INTEGER id PK "AUTOINCREMENT"
+    TEXT option_id FK
+    TEXT tag "e.g. #學業"
+  }
+
+  USER_PREFERENCES {
+    TEXT key PK "career_goal 等"
+    TEXT value
+  }
+
+  DECISIONS ||--o{ OPTIONS : "contains"
+  OPTIONS ||--o{ TAGS : "has"
+  OPTIONS }o--|| USER_PREFERENCES : "weighted by"
+    </div>
+  </div>
+</div>
+
+<script>
+  const THEME_VARS = {
+    background: '#1A1A1A',
+    primaryColor: '#2a1e08',
+    primaryTextColor: '#E5E5E5',
+    primaryBorderColor: '#F5A623',
+    lineColor: '#888',
+    secondaryColor: '#242424',
+    tertiaryColor: '#1a2e14',
+    noteBkgColor: '#242424',
+    noteTextColor: '#E5E5E5',
+    actorBkg: '#1A1A1A',
+    actorBorder: '#F5A623',
+    actorTextColor: '#E5E5E5',
+    actorLineColor: '#888',
+    signalColor: '#999',
+    signalTextColor: '#E5E5E5',
+    activationBkgColor: '#2a1e08',
+    sequenceNumberColor: '#F5A623',
+  };
+
+  // All sections visible so Mermaid can render; then hide all but first
+  mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: THEME_VARS });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Run Mermaid on all elements while they are visible
+    await mermaid.run({ querySelector: '.mermaid' });
+    // Now hide all sections except the first
+    document.querySelectorAll('.section').forEach((s, i) => {
+      if (i !== 0) s.classList.add('hidden');
+    });
+    document.querySelectorAll('.nav a')[0].classList.add('active');
+  });
+
+  function show(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.remove('hidden');
+    el.classList.add('active');
+    return false;
+  }
+</script>
+</body>
+</html>
