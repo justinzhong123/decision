@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>決策總覽 — OCDS Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0F0F0F; --card:#1A1A1A; --card2:#242424; --card3:#2E2E2E;
+    --accent:#F5A623; --text:#E5E5E5; --text2:#999; --text3:#555;
+    --danger:#E24B4A; --green:#4CAF50; --blue:#4A9EE2; --border:#333; --radius:12px;
+  }
+  body { background:var(--bg); color:var(--text);
+    font-family:'IBM Plex Sans TC','IBM Plex Mono',monospace; min-height:100vh; }
+  a { color:inherit; text-decoration:none; }
+
+  header { padding:28px 32px 0; max-width:1100px; margin:0 auto; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; }
+  .header-title { font-family:'IBM Plex Mono',monospace; font-size:1.5rem;
+    font-weight:600; color:var(--accent); letter-spacing:-0.5px; }
+  .header-subtitle { color:var(--text2); font-size:0.85rem; margin-top:4px; }
+  .nav-link { font-size:0.82rem; color:var(--text2); border:1px solid var(--border);
+    padding:8px 14px; border-radius:8px; transition:.15s; }
+  .nav-link:hover { border-color:var(--accent); color:var(--accent); }
+
+  main { max-width:1100px; margin:0 auto; padding:24px 32px 60px; }
+  .section-title { font-size:0.9rem; font-weight:600; color:var(--text2);
+    text-transform:uppercase; letter-spacing:1px; margin:32px 0 16px; }
+
+  /* 統計卡 */
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:14px; margin-top:20px; }
+  .card { background:var(--card); border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 20px; }
+  .card .num { font-family:'IBM Plex Mono',monospace; font-size:2rem;
+    font-weight:600; color:var(--accent); }
+  .card .label { color:var(--text2); font-size:0.8rem; margin-top:4px; }
+  .card.green .num { color:var(--green); }
+  .card.blue .num  { color:var(--blue); }
+
+  /* 標籤統計 */
+  .tag-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+  .tag-card { background:var(--card); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px 18px; }
+  .tag-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+  .tag-name { font-family:'IBM Plex Mono',monospace; color:var(--accent); font-weight:600; }
+  .tag-count { font-size:0.78rem; color:var(--text2); }
+  .bcr { display:flex; flex-direction:column; gap:8px; }
+  .bcr-row { display:flex; align-items:center; gap:10px; font-size:0.78rem; }
+  .bcr-row .k { width:60px; color:var(--text2); }
+  .bar { flex:1; height:8px; background:var(--card3); border-radius:4px; overflow:hidden; }
+  .bar > span { display:block; height:100%; border-radius:4px; }
+  .bar.b > span { background:var(--green); }
+  .bar.c > span { background:var(--danger); }
+  .bar.r > span { background:var(--accent); }
+  .bcr-row .v { width:34px; text-align:right; font-family:'IBM Plex Mono',monospace; color:var(--text); }
+
+  /* 決策表 */
+  table { width:100%; border-collapse:collapse; background:var(--card);
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  th, td { text-align:left; padding:12px 16px; font-size:0.82rem; border-bottom:1px solid var(--border); }
+  th { color:var(--text2); text-transform:uppercase; letter-spacing:.5px; font-size:0.72rem; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--card2); }
+  .pill { display:inline-block; padding:2px 9px; border-radius:20px; font-size:0.72rem; font-weight:600; }
+  .pill.active { background:#3a2f10; color:var(--accent); }
+  .pill.completed { background:#163a1a; color:var(--green); }
+  .chip { display:inline-block; background:var(--card3); color:var(--text2);
+    padding:1px 8px; border-radius:6px; font-size:0.7rem; margin:1px 2px;
+    font-family:'IBM Plex Mono',monospace; }
+  .net { font-family:'IBM Plex Mono',monospace; font-weight:600; }
+  .net.pos { color:var(--green); }
+  .empty { text-align:center; color:var(--text3); padding:60px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div>
+      <div class="header-title">📈 決策總覽</div>
+      <div class="header-subtitle">回顧你過往的決策、標籤偏好與機會成本</div>
+    </div>
+    <a class="nav-link" href="/">← 回決策列表</a>
+  </div>
+</header>
+
+<main>
+  <div class="cards" id="cards"></div>
+
+  <div class="section-title">標籤分析</div>
+  <div class="tag-grid" id="tags"></div>
+
+  <div class="section-title">決策紀錄</div>
+  <div id="table-wrap"></div>
+</main>
+
+<script>
+const fmt = v => (v === null || v === undefined) ? "—" : v;
+
+async function load() {
+  const data = await (await fetch("/api/dashboard")).json();
+  renderCards(data.totals);
+  renderTags(data.tag_stats);
+  renderTable(data.decisions);
+}
+
+function renderCards(t) {
+  const cards = [
+    {num:t.decisions, label:"總決策數"},
+    {num:t.active,    label:"進行中", cls:"blue"},
+    {num:t.completed, label:"已完成", cls:"green"},
+    {num:t.options,   label:"評估選項"},
+    {num:t.tags,      label:"使用標籤"},
+  ];
+  document.getElementById("cards").innerHTML = cards.map(c =>
+    `<div class="card ${c.cls||''}"><div class="num">${c.num}</div>
+     <div class="label">${c.label}</div></div>`).join("");
+}
+
+function renderTags(tags) {
+  const el = document.getElementById("tags");
+  if (!tags.length) { el.innerHTML = `<div class="empty">尚無標籤資料</div>`; return; }
+  const pct = v => Math.max(0, Math.min(100, (v/10)*100));
+  el.innerHTML = tags.map(t => `
+    <div class="tag-card">
+      <div class="tag-head">
+        <span class="tag-name">${t.tag}</span>
+        <span class="tag-count">出現 ${t.count} 次　淨值均 ${fmt(t.avg_net)}</span>
+      </div>
+      <div class="bcr">
+        <div class="bcr-row"><span class="k">效益</span>
+          <span class="bar b"><span style="width:${pct(t.avg_benefit)}%"></span></span>
+          <span class="v">${fmt(t.avg_benefit)}</span></div>
+        <div class="bcr-row"><span class="k">成本</span>
+          <span class="bar c"><span style="width:${pct(t.avg_cost)}%"></span></span>
+          <span class="v">${fmt(t.avg_cost)}</span></div>
+        <div class="bcr-row"><span class="k">風險</span>
+          <span class="bar r"><span style="width:${pct(t.avg_risk)}%"></span></span>
+          <span class="v">${fmt(t.avg_risk)}</span></div>
+      </div>
+    </div>`).join("");
+}
+
+function renderTable(rows) {
+  const wrap = document.getElementById("table-wrap");
+  if (!rows.length) { wrap.innerHTML = `<div class="empty">尚無決策，先到決策列表新增吧</div>`; return; }
+  wrap.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>決策</th><th>狀態</th><th>選項</th><th>最佳選項</th><th>淨值</th><th>標籤</th><th>建立時間</th>
+      </tr></thead>
+      <tbody>
+      ${rows.map(d => `
+        <tr>
+          <td>${d.title}</td>
+          <td><span class="pill ${d.status}">${d.status === 'completed' ? '已完成' : '進行中'}</span></td>
+          <td>${d.option_count}</td>
+          <td>${fmt(d.best_option)}</td>
+          <td class="net ${(d.best_net_value||0) > 0 ? 'pos' : ''}">${fmt(d.best_net_value)}</td>
+          <td>${d.tags.map(t => `<span class="chip">${t}</span>`).join("") || "—"}</td>
+          <td style="color:var(--text2)">${(d.created_at||'').slice(0,10)}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+load();
+</script>
+</body>
+</html>

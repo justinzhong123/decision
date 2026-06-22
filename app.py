@@ -28,6 +28,11 @@ def uml():
     return render_template("uml.html")
 
 
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+
 @app.route("/api/decisions", methods=["GET"])
 def list_decisions():
     conn = get_db()
@@ -170,6 +175,74 @@ def analyze_decision(did):
         "options": sorted(opts, key=lambda o: o["weighted_score"], reverse=True),
         "recommendation": recommended["name"] if recommended else None,
         "baselines": baselines,
+    })
+
+
+# ── Dashboard ──────────────────────────────────────────────────────────────
+
+@app.route("/api/dashboard", methods=["GET"])
+def dashboard_data():
+    conn = get_db()
+
+    decisions = [dict(d) for d in conn.execute(
+        "SELECT * FROM decisions ORDER BY created_at DESC"
+    ).fetchall()]
+
+    total = len(decisions)
+    completed = sum(1 for d in decisions if d["status"] == "completed")
+    active = total - completed
+
+    # 每筆決策附上選項數、最佳選項與其淨值
+    summaries = []
+    total_options = 0
+    for d in decisions:
+        opts = _get_options_for_decision(conn, d["id"])
+        total_options += len(opts)
+        best = max(opts, key=lambda o: (o["net_value"] or -999), default=None)
+        tags = sorted({t for o in opts for t in o["tags"]})
+        summaries.append({
+            "id": d["id"],
+            "title": d["title"],
+            "status": d["status"],
+            "created_at": d["created_at"],
+            "option_count": len(opts),
+            "best_option": best["name"] if best else None,
+            "best_net_value": best["net_value"] if best else None,
+            "tags": tags,
+        })
+
+    # 標籤統計：使用次數 + 平均效益/成本/風險
+    tag_rows = conn.execute("""
+        SELECT t.tag AS tag,
+               COUNT(*) AS count,
+               AVG(o.benefit) AS avg_benefit,
+               AVG(o.cost)    AS avg_cost,
+               AVG(o.risk)    AS avg_risk,
+               AVG(o.net_value) AS avg_net
+        FROM tags t JOIN options o ON o.id = t.option_id
+        GROUP BY t.tag
+        ORDER BY count DESC
+    """).fetchall()
+    tag_stats = [{
+        "tag": r["tag"],
+        "count": r["count"],
+        "avg_benefit": round(r["avg_benefit"], 2) if r["avg_benefit"] is not None else None,
+        "avg_cost": round(r["avg_cost"], 2) if r["avg_cost"] is not None else None,
+        "avg_risk": round(r["avg_risk"], 2) if r["avg_risk"] is not None else None,
+        "avg_net": round(r["avg_net"], 2) if r["avg_net"] is not None else None,
+    } for r in tag_rows]
+
+    conn.close()
+    return jsonify({
+        "totals": {
+            "decisions": total,
+            "active": active,
+            "completed": completed,
+            "options": total_options,
+            "tags": len(tag_stats),
+        },
+        "decisions": summaries,
+        "tag_stats": tag_stats,
     })
 
 

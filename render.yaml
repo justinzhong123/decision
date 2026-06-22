@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: decision
+    runtime: python
+    plan: starter            # 持久磁碟需要 starter（付費）以上方案；free 方案沒有 disk
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DB_PATH
+        value: /var/data/ocds.db   # 指向下方掛載的持久磁碟
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1

@@ -34,6 +34,23 @@ python3 app.py
 
 啟動後開啟瀏覽器前往 [http://localhost:5001](http://localhost:5001)
 
+## 部署到 Render
+
+此專案使用 SQLite，需要**持久磁碟 (Persistent Disk)** 才能讓資料在重新部署後保留，因此採用支援常駐伺服器的 Render（而非 Vercel serverless）。
+
+設定已包含在 `render.yaml`：以 `gunicorn` 啟動、把資料庫透過 `DB_PATH` 環境變數指向掛載的磁碟 `/var/data/ocds.db`。
+
+步驟：
+
+1. 把專案推上 GitHub。
+2. 在 [Render](https://render.com) 點 **New → Blueprint**，選擇此 repo，Render 會自動讀取 `render.yaml`。
+3. 部署完成後即可使用所提供的網址。
+
+> ⚠️ 持久磁碟需要 **Starter（付費）以上方案**；Render 的 free 方案沒有 disk，資料會在每次重啟後消失。
+> 若想完全免費並保留資料，可改用 **Fly.io**（volume 有免費額度）；告訴我即可幫你補上 `Dockerfile` 與 `fly.toml`。
+
+部署用設定檔：`render.yaml`、`Procfile`、`requirements.txt`（含 `gunicorn`）。
+
 ## 專案結構
 
 ```

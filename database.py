@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "ocds.db")
+# 可用 DB_PATH 環境變數覆寫，部署時指向持久磁碟（如 Render 的 /var/data/ocds.db）
+DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "ocds.db"))
 
 
 def get_db():
@@ -12,6 +13,9 @@ def get_db():
 
 
 def init_db():
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
     conn = get_db()
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS decisions (
