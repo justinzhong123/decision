@@ -14,11 +14,16 @@
 ## 評分公式
 
 ```
-weighted_score = (Benefit - Cost - Risk) × ω
+base           = 1.2·Benefit - 0.6·Cost - 0.5·Risk     # 對成本/風險容忍
+ambition_bonus = 0.4 × max(0, Benefit - 7)             # 獎勵高價值的大膽選擇
+weighted_score = (base + ambition_bonus) × ω
 net_value      = weighted_score(最佳) - weighted_score(次佳)
 ```
 
-其中職涯相關標籤的權重 `ω = 1.25`，其餘為 `1.0`。
+- 效益權重高於成本與風險，且成本/風險係數 < 1，因此「高風險、高成本、但高價值」的選項仍有機會勝出，不會總是輸給保守選項。
+- 效益達 7 分以上會獲得額外「企圖心獎勵」。
+- 職涯相關標籤的權重 `ω = 1.25`，其餘為 `1.0`。
+- 以上係數定義在 [logic.py](logic.py) 頂部，可自行調整。
 
 ## 安裝與執行
 
