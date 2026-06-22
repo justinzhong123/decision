@@ -1,5 +1,8 @@
+import csv
+import io
 import uuid
-from flask import Flask, request, jsonify, render_template
+from datetime import datetime
+from flask import Flask, request, jsonify, render_template, Response
 from database import get_db, init_db
 from logic import compute_net_values, historical_baseline
 
@@ -244,6 +247,52 @@ def dashboard_data():
         "decisions": summaries,
         "tag_stats": tag_stats,
     })
+
+
+# ── Export ─────────────────────────────────────────────────────────────────
+
+@app.route("/api/export.csv", methods=["GET"])
+def export_csv():
+    """匯出所有決策與選項為 CSV，每列一個選項。"""
+    conn = get_db()
+    decisions = conn.execute(
+        "SELECT * FROM decisions ORDER BY created_at DESC"
+    ).fetchall()
+
+    buf = io.StringIO()
+    buf.write("﻿")  # UTF-8 BOM，讓 Excel 正確顯示中文
+    writer = csv.writer(buf)
+    writer.writerow([
+        "決策主題", "決策描述", "狀態", "建立時間",
+        "選項名稱", "選項描述", "效益", "成本", "風險",
+        "淨值", "是否推薦", "重要", "標籤",
+    ])
+
+    for d in decisions:
+        d = dict(d)
+        opts = _get_options_for_decision(conn, d["id"])
+        if not opts:
+            writer.writerow([d["title"], d["description"],
+                             d["status"], d["created_at"],
+                             "", "", "", "", "", "", "", "", ""])
+            continue
+        for o in opts:
+            writer.writerow([
+                d["title"], d["description"], d["status"], d["created_at"],
+                o["name"], o["description"], o["benefit"], o["cost"], o["risk"],
+                o["net_value"] if o["net_value"] is not None else "",
+                "是" if o["is_chosen"] else "",
+                "是" if o["is_important"] else "",
+                " ".join(o["tags"]),
+            ])
+
+    conn.close()
+    filename = f"decisions_{datetime.now():%Y%m%d}.csv"
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 # ── Preferences ────────────────────────────────────────────────────────────
